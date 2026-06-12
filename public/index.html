@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#b8dce5" />
+    <title>小u0畫畫猜猜</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/socket.io/socket.io.js" defer></script>
+    <script src="/client.js" defer></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section id="joinView" class="join-view" aria-labelledby="gameTitle">
+        <div class="brand">
+          <span class="brand-mark">u0</span>
+          <div>
+            <h1 id="gameTitle">小u0畫畫猜猜</h1>
+            <p>Yuna 團購群專用</p>
+          </div>
+        </div>
+
+        <form id="joinForm" class="join-panel">
+          <label for="nameInput">暱稱</label>
+          <input id="nameInput" name="name" autocomplete="nickname" maxlength="14" placeholder="輸入你的可愛暱稱" />
+
+          <label for="roomInput">房間代碼</label>
+          <input id="roomInput" name="room" autocomplete="off" maxlength="8" placeholder="有連結會自動帶入" />
+
+          <div class="join-actions">
+            <button class="primary-button" type="submit">加入房間</button>
+            <button id="createRoomButton" class="secondary-button" type="button">開新房間</button>
+          </div>
+
+          <p id="joinError" class="error-text" role="alert"></p>
+        </form>
+      </section>
+
+      <section id="gameView" class="game-view" hidden>
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">小u0畫畫猜猜</p>
+            <h2 id="roundTitle">等待開始</h2>
+          </div>
+          <div class="room-pill">
+            <span id="roomCodeLabel">----</span>
+            <button id="copyLinkButton" type="button" title="複製邀請連結">邀請</button>
+          </div>
+        </header>
+
+        <section class="status-strip" aria-live="polite">
+          <div>
+            <span>提示</span>
+            <strong id="hintLabel">等房主開始</strong>
+          </div>
+          <div>
+            <span>倒數</span>
+            <strong id="timerLabel">--</strong>
+          </div>
+          <div>
+            <span>身份</span>
+            <strong id="roleLabel">玩家</strong>
+          </div>
+        </section>
+
+        <section class="play-layout">
+          <div class="canvas-panel">
+            <div class="toolbar">
+              <div class="swatches" aria-label="畫筆顏色">
+                <button class="swatch is-active" type="button" data-color="#4b8fa0" style="--swatch:#4b8fa0" title="水藍"></button>
+                <button class="swatch" type="button" data-color="#5f7f9f" style="--swatch:#5f7f9f" title="灰藍"></button>
+                <button class="swatch" type="button" data-color="#e59aa2" style="--swatch:#e59aa2" title="粉紅"></button>
+                <button class="swatch" type="button" data-color="#e4bf7a" style="--swatch:#e4bf7a" title="奶茶"></button>
+                <button class="swatch" type="button" data-color="#53606b" style="--swatch:#53606b" title="墨灰"></button>
+              </div>
+              <label class="size-control" for="brushSize">
+                <span>筆</span>
+                <input id="brushSize" type="range" min="3" max="22" value="7" />
+              </label>
+              <button id="clearButton" class="icon-button" type="button" title="清空畫布">清空</button>
+            </div>
+
+            <div class="canvas-wrap">
+              <canvas id="drawCanvas" width="900" height="620"></canvas>
+              <div class="watermark">creat by 璐璐璐 · Yuna 團購群專用 · 請勿外流</div>
+              <div id="canvasBlocker" class="canvas-blocker">等待畫畫的人出題中</div>
+            </div>
+          </div>
+
+          <aside class="side-panel">
+            <div class="players-box">
+              <div class="panel-title">
+                <h3>玩家</h3>
+                <button id="startButton" class="small-button" type="button">開始</button>
+              </div>
+              <ul id="playersList" class="players-list"></ul>
+            </div>
+
+            <div class="chat-box">
+              <h3>猜答案</h3>
+              <div id="messagesList" class="messages-list" aria-live="polite"></div>
+              <form id="guessForm" class="guess-form">
+                <input id="guessInput" autocomplete="off" maxlength="40" placeholder="輸入答案或聊天" />
+                <button type="submit">送出</button>
+              </form>
+            </div>
+          </aside>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

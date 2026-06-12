@@ -1,0 +1,18 @@
+{
+  "name": "u0-draw-guess",
+  "version": "0.1.0",
+  "private": true,
+  "description": "小u0畫畫猜猜 - LINE friends draw and guess party game",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
