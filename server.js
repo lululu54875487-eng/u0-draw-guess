@@ -187,10 +187,10 @@ function endRound(room, reason = "time") {
 }
 
 function startRound(room) {
-  if (room.players.length < 2) {
+  if (room.players.length < 1) {
     addMessage(room, {
       type: "system",
-      text: "至少需要 2 位玩家才能開始。"
+      text: "至少需要 1 位玩家才能開始。"
     });
     emitRoom(room);
     return;
@@ -217,7 +217,7 @@ function startRound(room) {
 
   addMessage(room, {
     type: "system",
-    text: `輪到 ${drawer.name} 畫畫了。`
+    text: room.players.length === 1 ? `單人練習開始，題目已給 ${drawer.name}。` : `輪到 ${drawer.name} 畫畫了。`
   });
 
   room.timer = setTimeout(() => endRound(room, "time"), ROUND_SECONDS * 1000);
@@ -360,9 +360,10 @@ io.on("connection", (socket) => {
     const guess = String(text || "").trim().slice(0, 40);
     if (!guess) return;
 
+    const soloPractice = room.players.length === 1 && socket.id === room.drawerId;
     const isCorrect =
       room.currentWord &&
-      socket.id !== room.drawerId &&
+      (socket.id !== room.drawerId || soloPractice) &&
       normalizeAnswer(guess) === normalizeAnswer(room.currentWord) &&
       !room.guessedIds.has(socket.id);
 
@@ -374,7 +375,7 @@ io.on("connection", (socket) => {
       addMessage(room, {
         type: "correct",
         playerName: player.name,
-        text: `${player.name} 猜中了！`
+        text: soloPractice ? `${player.name} 自己答對了！` : `${player.name} 猜中了！`
       });
       const guessers = room.players.filter((item) => item.id !== room.drawerId);
       if (guessers.length > 0 && guessers.every((item) => room.guessedIds.has(item.id))) {

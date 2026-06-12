@@ -284,6 +284,7 @@ function renderState(nextState) {
   const drawer = state.players.find((player) => player.id === state.drawerId);
   const isDrawer = state.drawerId === socket.id;
   const isHost = Boolean(me?.isHost);
+  const isSolo = state.players.length === 1;
 
   roomCodeLabel.textContent = state.code;
   roundTitle.textContent = state.currentWord
@@ -296,8 +297,13 @@ function renderState(nextState) {
   startButton.textContent = state.roundEndsAt ? "下一題" : "開始";
   startButton.hidden = !isHost;
   clearButton.disabled = !isDrawer;
-  guessInput.disabled = isDrawer && Boolean(state.currentWord);
-  guessInput.placeholder = isDrawer && state.currentWord ? "你負責畫，不能猜唷" : "輸入答案或聊天";
+  guessInput.disabled = isDrawer && Boolean(state.currentWord) && !isSolo;
+  guessInput.placeholder =
+    isDrawer && state.currentWord && !isSolo
+      ? "你負責畫，不能猜唷"
+      : isSolo && state.currentWord
+        ? "單人練習：可輸入答案或聊天"
+        : "輸入答案或聊天";
 
   if (state.roundEndsAt && !isDrawer) {
     canvasBlocker.textContent = drawer ? `${drawer.name} 正在畫，快猜！` : "快猜答案";
