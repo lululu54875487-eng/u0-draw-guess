@@ -294,7 +294,7 @@ function renderState(nextState) {
       : "等待開始";
   hintLabel.textContent = state.currentWord || state.wordHint || categoryLabel(state.settings?.category);
   roleLabel.textContent = isDrawer ? "你是畫畫的人" : "你來猜";
-  startButton.textContent = state.roundEndsAt ? "下一題" : "開始";
+  startButton.textContent = state.roundEndsAt ? "結束本題" : "開始";
   startButton.hidden = !isHost;
   clearButton.disabled = !isDrawer;
   guessInput.disabled = isDrawer && Boolean(state.currentWord) && !isSolo;
@@ -379,7 +379,6 @@ copyLinkButton.addEventListener("click", async () => {
 startButton.addEventListener("click", () => {
   if (state?.roundEndsAt) {
     socket.emit("round:skip");
-    setTimeout(() => socket.emit("round:start"), 250);
     return;
   }
   socket.emit("round:start");

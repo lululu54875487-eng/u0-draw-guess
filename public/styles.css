@@ -215,6 +215,14 @@ button:active {
   font-weight: 700;
 }
 
+.field-hint {
+  margin-top: 7px;
+  color: #6e858d;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
 .game-view {
   min-height: 100dvh;
   display: flex;
