@@ -27,7 +27,10 @@ const ctx = canvas.getContext("2d");
 const canvasBlocker = document.querySelector("#canvasBlocker");
 const clearButton = document.querySelector("#clearButton");
 const brushSize = document.querySelector("#brushSize");
+const brushSizeValue = document.querySelector("#brushSizeValue");
 const swatches = Array.from(document.querySelectorAll(".swatch"));
+const sizePresetButtons = Array.from(document.querySelectorAll(".size-presets button"));
+const emojiButtons = Array.from(document.querySelectorAll(".emoji-row button"));
 
 const urlRoomCode = location.pathname.match(/\/room\/([A-Za-z0-9]+)/)?.[1];
 if (urlRoomCode) {
@@ -139,12 +142,9 @@ function renderCanvas() {
 
 function canvasPoint(event) {
   const rect = canvas.getBoundingClientRect();
-  const touch = event.touches?.[0] || event.changedTouches?.[0];
-  const clientX = touch ? touch.clientX : event.clientX;
-  const clientY = touch ? touch.clientY : event.clientY;
   return {
-    x: Math.max(0, Math.min((clientX - rect.left) / rect.width, 1)),
-    y: Math.max(0, Math.min((clientY - rect.top) / rect.height, 1))
+    x: Math.max(0, Math.min((event.clientX - rect.left) / rect.width, 1)),
+    y: Math.max(0, Math.min((event.clientY - rect.top) / rect.height, 1))
   };
 }
 
@@ -152,13 +152,25 @@ function canDraw() {
   return state?.drawerId === socket.id && Boolean(state?.currentWord);
 }
 
+function currentBrushSize() {
+  return Number(brushSize.value);
+}
+
+function updateBrushSizeLabel() {
+  brushSizeValue.textContent = brushSize.value;
+  sizePresetButtons.forEach((button) => {
+    button.classList.toggle("is-active", Number(button.dataset.size) === Number(brushSize.value));
+  });
+}
+
 function beginDraw(event) {
   if (!canDraw()) return;
   event.preventDefault();
+  canvas.setPointerCapture?.(event.pointerId);
   drawing = true;
   currentStroke = {
     color: brushColor,
-    size: Number(brushSize.value),
+    size: currentBrushSize(),
     points: [canvasPoint(event)]
   };
   drawStroke(currentStroke);
@@ -181,6 +193,7 @@ function endDraw(event) {
   if (!drawing || !currentStroke) return;
   event.preventDefault();
   drawing = false;
+  canvas.releasePointerCapture?.(event.pointerId);
   if (state) state.strokes.push(currentStroke);
   socket.emit("draw:stroke", currentStroke);
   currentStroke = null;
@@ -326,6 +339,16 @@ function saveSettings() {
   );
 }
 
+function insertEmoji(emoji) {
+  if (guessInput.disabled) return;
+  const start = guessInput.selectionStart ?? guessInput.value.length;
+  const end = guessInput.selectionEnd ?? guessInput.value.length;
+  guessInput.value = `${guessInput.value.slice(0, start)}${emoji}${guessInput.value.slice(end)}`.slice(0, 60);
+  const cursor = Math.min(start + emoji.length, guessInput.value.length);
+  guessInput.focus();
+  guessInput.setSelectionRange(cursor, cursor);
+}
+
 joinForm.addEventListener("submit", (event) => {
   event.preventDefault();
   requestJoinRoom();
@@ -388,6 +411,19 @@ swatches.forEach((swatch) => {
   });
 });
 
+brushSize.addEventListener("input", updateBrushSizeLabel);
+
+sizePresetButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    brushSize.value = button.dataset.size;
+    updateBrushSizeLabel();
+  });
+});
+
+emojiButtons.forEach((button) => {
+  button.addEventListener("click", () => insertEmoji(button.dataset.emoji));
+});
+
 canvas.addEventListener("pointerdown", beginDraw);
 canvas.addEventListener("pointermove", moveDraw);
 canvas.addEventListener("pointerup", endDraw);
@@ -414,4 +450,5 @@ socket.on("chat:message", (message) => {
 const savedName = localStorage.getItem("u0-player-name");
 if (savedName) nameInput.value = savedName;
 
+updateBrushSizeLabel();
 resizeCanvasForDisplay();

@@ -308,7 +308,8 @@ button:active {
 }
 
 .swatches {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(5, 34px);
   gap: 8px;
 }
 
@@ -336,6 +337,37 @@ button:active {
 .size-control input {
   width: 120px;
   accent-color: var(--blue-500);
+}
+
+.brush-tools {
+  display: grid;
+  gap: 8px;
+}
+
+.size-control strong {
+  min-width: 24px;
+  color: #4a8494;
+  text-align: right;
+}
+
+.size-presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.size-presets button,
+.emoji-row button {
+  min-height: 34px;
+  border-radius: 12px;
+  background: var(--blue-50);
+  color: #527783;
+  font-weight: 900;
+}
+
+.size-presets button.is-active {
+  background: var(--blue-500);
+  color: white;
 }
 
 .icon-button {
@@ -518,6 +550,18 @@ textarea:disabled {
   font-weight: 950;
 }
 
+.emoji-row {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.emoji-row button {
+  padding: 0;
+  font-size: 18px;
+}
+
 .guess-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 76px;
@@ -583,14 +627,26 @@ textarea:disabled {
     flex-wrap: wrap;
   }
 
-  .size-control {
+  .swatches {
+    grid-template-columns: repeat(5, 34px);
+  }
+
+  .brush-tools {
     order: 3;
+    width: 100%;
+  }
+
+  .size-control {
     width: 100%;
   }
 
   .size-control input {
     flex: 1;
     width: auto;
+  }
+
+  .emoji-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .watermark {

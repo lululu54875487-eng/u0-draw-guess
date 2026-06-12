@@ -68,21 +68,34 @@
             <div class="toolbar">
               <div class="swatches" aria-label="畫筆顏色">
                 <button class="swatch is-active" type="button" data-color="#4b8fa0" style="--swatch:#4b8fa0" title="水藍"></button>
+                <button class="swatch" type="button" data-color="#78b7c8" style="--swatch:#78b7c8" title="淺藍"></button>
                 <button class="swatch" type="button" data-color="#5f7f9f" style="--swatch:#5f7f9f" title="灰藍"></button>
                 <button class="swatch" type="button" data-color="#e59aa2" style="--swatch:#e59aa2" title="粉紅"></button>
+                <button class="swatch" type="button" data-color="#d77f8f" style="--swatch:#d77f8f" title="莓果"></button>
                 <button class="swatch" type="button" data-color="#e4bf7a" style="--swatch:#e4bf7a" title="奶茶"></button>
+                <button class="swatch" type="button" data-color="#f2d36b" style="--swatch:#f2d36b" title="布丁黃"></button>
+                <button class="swatch" type="button" data-color="#86b889" style="--swatch:#86b889" title="抹茶綠"></button>
+                <button class="swatch" type="button" data-color="#9c89c8" style="--swatch:#9c89c8" title="薰衣草"></button>
                 <button class="swatch" type="button" data-color="#53606b" style="--swatch:#53606b" title="墨灰"></button>
               </div>
-              <label class="size-control" for="brushSize">
-                <span>筆</span>
-                <input id="brushSize" type="range" min="3" max="22" value="7" />
-              </label>
+              <div class="brush-tools">
+                <label class="size-control" for="brushSize">
+                  <span>筆觸</span>
+                  <input id="brushSize" type="range" min="2" max="30" value="7" />
+                  <strong id="brushSizeValue">7</strong>
+                </label>
+                <div class="size-presets" aria-label="筆觸粗細快捷">
+                  <button type="button" data-size="4">細</button>
+                  <button type="button" data-size="10">中</button>
+                  <button type="button" data-size="20">粗</button>
+                </div>
+              </div>
               <button id="clearButton" class="icon-button" type="button" title="清空畫布">清空</button>
             </div>
 
             <div class="canvas-wrap">
               <canvas id="drawCanvas" width="900" height="620"></canvas>
-              <div class="watermark">creat by 璐璐璐 · Yuna 團購群專用 · 請勿外流</div>
+              <div class="watermark">❗️限廢物公司使用｜禁止外流｜by 璐璐璐✨</div>
               <div id="canvasBlocker" class="canvas-blocker">等待畫畫的人出題中</div>
             </div>
           </div>
@@ -118,8 +131,18 @@
             <div class="chat-box">
               <h3>猜答案</h3>
               <div id="messagesList" class="messages-list" aria-live="polite"></div>
+              <div class="emoji-row" aria-label="常用 emoji">
+                <button type="button" data-emoji="😂">😂</button>
+                <button type="button" data-emoji="🤣">🤣</button>
+                <button type="button" data-emoji="😍">😍</button>
+                <button type="button" data-emoji="🥹">🥹</button>
+                <button type="button" data-emoji="👍">👍</button>
+                <button type="button" data-emoji="👏">👏</button>
+                <button type="button" data-emoji="🔥">🔥</button>
+                <button type="button" data-emoji="✨">✨</button>
+              </div>
               <form id="guessForm" class="guess-form">
-                <input id="guessInput" autocomplete="off" maxlength="40" placeholder="輸入答案或聊天" />
+                <input id="guessInput" autocomplete="off" maxlength="60" placeholder="輸入答案或聊天" />
                 <button type="submit">送出</button>
               </form>
             </div>
