@@ -7,28 +7,32 @@ const PORT = process.env.PORT || 3000;
 const ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const ROUND_SECONDS = 80;
 const MAX_NAME_LENGTH = 14;
+const MAX_CUSTOM_WORDS = 80;
+const MAX_WORD_LENGTH = 16;
 
-const wordBank = [
-  "珍珠奶茶",
-  "吐司",
-  "雨傘",
-  "貓咪",
-  "蛋糕",
-  "火鍋",
-  "泡泡",
-  "月亮",
-  "手機",
-  "拖鞋",
-  "小熊",
-  "花束",
-  "公車",
-  "冰淇淋",
-  "蝴蝶結",
-  "水壺",
-  "便當",
-  "星星",
-  "氣球",
-  "蘋果"
+const wordCategories = {
+  food: {
+    label: "食物飲料",
+    words: ["珍珠奶茶", "吐司", "蛋糕", "火鍋", "冰淇淋", "便當", "蘋果", "甜甜圈", "滷肉飯", "布丁"]
+  },
+  daily: {
+    label: "生活小物",
+    words: ["雨傘", "手機", "拖鞋", "水壺", "鉛筆", "枕頭", "鑰匙", "牙刷", "眼鏡", "鬧鐘"]
+  },
+  cute: {
+    label: "可愛動物",
+    words: ["貓咪", "小熊", "兔子", "企鵝", "小狗", "海豚", "倉鼠", "小鴨", "無尾熊", "刺蝟"]
+  },
+  party: {
+    label: "聚會搞笑",
+    words: ["泡泡", "月亮", "花束", "公車", "蝴蝶結", "星星", "氣球", "皇冠", "禮物", "麥克風"]
+  }
+};
+
+const categoryOptions = [
+  { id: "mixed", label: "全部混合" },
+  ...Object.entries(wordCategories).map(([id, category]) => ({ id, label: category.label })),
+  { id: "custom", label: "只玩自訂題目" }
 ];
 
 const app = express();
@@ -66,7 +70,11 @@ function createRoom(roomCode = makeRoomCode()) {
     drawerIndex: -1,
     roundEndsAt: null,
     guessedIds: new Set(),
-    timer: null
+    timer: null,
+    settings: {
+      category: "mixed",
+      customWords: []
+    }
   };
   rooms.set(roomCode, room);
   return room;
@@ -92,7 +100,12 @@ function roomState(room, viewerId) {
     roundEndsAt: room.roundEndsAt,
     currentWord: viewerIsDrawer ? room.currentWord : null,
     wordHint: room.currentWord ? `${room.currentWord.length} 個字` : null,
-    guessedIds: Array.from(room.guessedIds)
+    guessedIds: Array.from(room.guessedIds),
+    settings: {
+      category: room.settings.category,
+      customWords: room.settings.customWords
+    },
+    categoryOptions
   };
 }
 
@@ -111,6 +124,42 @@ function addMessage(room, message) {
   room.messages = room.messages.slice(-60);
 }
 
+function sanitizeCustomWords(input) {
+  const lines = Array.isArray(input) ? input : String(input || "").split(/\r?\n|,|，/);
+  const seen = new Set();
+  const words = [];
+
+  lines.forEach((line) => {
+    const word = String(line || "").trim().replace(/\s+/g, " ").slice(0, MAX_WORD_LENGTH);
+    const key = word.toLowerCase();
+    if (!word || seen.has(key)) return;
+    seen.add(key);
+    words.push(word);
+  });
+
+  return words.slice(0, MAX_CUSTOM_WORDS);
+}
+
+function sanitizeCategory(category) {
+  const cleanCategory = String(category || "mixed");
+  return categoryOptions.some((item) => item.id === cleanCategory) ? cleanCategory : "mixed";
+}
+
+function getWordPool(settings) {
+  const customWords = settings.customWords || [];
+
+  if (settings.category === "custom") {
+    return customWords;
+  }
+
+  const baseWords =
+    settings.category === "mixed"
+      ? Object.values(wordCategories).flatMap((category) => category.words)
+      : wordCategories[settings.category]?.words || [];
+
+  return [...baseWords, ...customWords];
+}
+
 function endRound(room, reason = "time") {
   if (!room.currentWord) return;
 
@@ -121,6 +170,7 @@ function endRound(room, reason = "time") {
       : reason === "skip"
         ? `這題跳過囉，答案是「${answer}」。`
         : `時間到！答案是「${answer}」。`;
+
   clearTimeout(room.timer);
   room.timer = null;
   room.currentWord = null;
@@ -146,11 +196,21 @@ function startRound(room) {
     return;
   }
 
+  const wordPool = getWordPool(room.settings);
+  if (wordPool.length === 0) {
+    addMessage(room, {
+      type: "system",
+      text: "這個分類目前沒有題目，請先新增自訂題目或改選其他分類。"
+    });
+    emitRoom(room);
+    return;
+  }
+
   clearTimeout(room.timer);
   room.drawerIndex = (room.drawerIndex + 1) % room.players.length;
   const drawer = room.players[room.drawerIndex];
   room.drawerId = drawer.id;
-  room.currentWord = wordBank[Math.floor(Math.random() * wordBank.length)];
+  room.currentWord = wordPool[Math.floor(Math.random() * wordPool.length)];
   room.roundEndsAt = Date.now() + ROUND_SECONDS * 1000;
   room.guessedIds.clear();
   room.strokes = [];
@@ -166,6 +226,10 @@ function startRound(room) {
 
 function getPlayer(room, socketId) {
   return room.players.find((player) => player.id === socketId);
+}
+
+function normalizeAnswer(text) {
+  return String(text || "").trim().replace(/\s+/g, "").toLowerCase();
 }
 
 function sanitizeRoomCode(roomCode) {
@@ -222,6 +286,29 @@ io.on("connection", (socket) => {
     emitRoom(room);
   });
 
+  socket.on("room:updateSettings", ({ category, customWords }, callback) => {
+    const room = rooms.get(socket.data.roomCode);
+    if (!room) return;
+    const player = getPlayer(room, socket.id);
+    if (!player?.isHost) {
+      callback?.({ ok: false, error: "只有房主可以修改題庫。" });
+      return;
+    }
+    if (room.currentWord) {
+      callback?.({ ok: false, error: "回合進行中不能修改題庫。" });
+      return;
+    }
+
+    room.settings.category = sanitizeCategory(category);
+    room.settings.customWords = sanitizeCustomWords(customWords);
+    addMessage(room, {
+      type: "system",
+      text: `題庫已更新：${categoryOptions.find((item) => item.id === room.settings.category)?.label || "全部混合"}，自訂 ${room.settings.customWords.length} 題。`
+    });
+    callback?.({ ok: true });
+    emitRoom(room);
+  });
+
   socket.on("round:start", () => {
     const room = rooms.get(socket.data.roomCode);
     if (!room) return;
@@ -273,7 +360,13 @@ io.on("connection", (socket) => {
     const guess = String(text || "").trim().slice(0, 40);
     if (!guess) return;
 
-    if (room.currentWord && socket.id !== room.drawerId && guess === room.currentWord && !room.guessedIds.has(socket.id)) {
+    const isCorrect =
+      room.currentWord &&
+      socket.id !== room.drawerId &&
+      normalizeAnswer(guess) === normalizeAnswer(room.currentWord) &&
+      !room.guessedIds.has(socket.id);
+
+    if (isCorrect) {
       room.guessedIds.add(socket.id);
       player.score += 10;
       const drawer = getPlayer(room, room.drawerId);

@@ -15,6 +15,10 @@ const timerLabel = document.querySelector("#timerLabel");
 const roleLabel = document.querySelector("#roleLabel");
 const playersList = document.querySelector("#playersList");
 const startButton = document.querySelector("#startButton");
+const categorySelect = document.querySelector("#categorySelect");
+const customWordsInput = document.querySelector("#customWordsInput");
+const saveSettingsButton = document.querySelector("#saveSettingsButton");
+const settingsHint = document.querySelector("#settingsHint");
 const messagesList = document.querySelector("#messagesList");
 const guessForm = document.querySelector("#guessForm");
 const guessInput = document.querySelector("#guessInput");
@@ -35,6 +39,7 @@ let brushColor = "#4b8fa0";
 let drawing = false;
 let currentStroke = null;
 let countdownId = null;
+let settingsDirty = false;
 
 function setError(message = "") {
   joinError.textContent = message;
@@ -235,6 +240,31 @@ function renderPlayers(players) {
   );
 }
 
+function categoryLabel(categoryId) {
+  return state?.categoryOptions?.find((item) => item.id === categoryId)?.label || "全部混合";
+}
+
+function renderSettings(isHost) {
+  if (!settingsDirty) {
+    categorySelect.value = state.settings?.category || "mixed";
+    customWordsInput.value = (state.settings?.customWords || []).join("\n");
+  }
+
+  const locked = !isHost || Boolean(state.roundEndsAt);
+  categorySelect.disabled = locked;
+  customWordsInput.disabled = locked;
+  saveSettingsButton.hidden = !isHost;
+  saveSettingsButton.disabled = locked || !settingsDirty;
+
+  if (!isHost) {
+    settingsHint.textContent = `房主目前選擇：${categoryLabel(state.settings?.category)}，自訂 ${state.settings?.customWords?.length || 0} 題。`;
+  } else if (state.roundEndsAt) {
+    settingsHint.textContent = "回合進行中不能修改題庫。";
+  } else {
+    settingsHint.textContent = "自訂題目一行一題；選「只玩自訂題目」時，請至少填 1 題。";
+  }
+}
+
 function renderState(nextState) {
   state = nextState;
   const me = state.players.find((player) => player.id === socket.id);
@@ -248,7 +278,7 @@ function renderState(nextState) {
     : drawer
       ? `${drawer.name} 正在畫畫`
       : "等待開始";
-  hintLabel.textContent = state.currentWord || state.wordHint || "等房主開始";
+  hintLabel.textContent = state.currentWord || state.wordHint || categoryLabel(state.settings?.category);
   roleLabel.textContent = isDrawer ? "你是畫畫的人" : "你來猜";
   startButton.textContent = state.roundEndsAt ? "下一題" : "開始";
   startButton.hidden = !isHost;
@@ -267,9 +297,33 @@ function renderState(nextState) {
   }
 
   renderPlayers(state.players);
+  renderSettings(isHost);
   renderMessages(state.messages);
   renderCanvas();
   startCountdown();
+}
+
+function saveSettings() {
+  saveSettingsButton.disabled = true;
+  socket.emit(
+    "room:updateSettings",
+    {
+      category: categorySelect.value,
+      customWords: customWordsInput.value
+    },
+    (response) => {
+      if (!response?.ok) {
+        settingsHint.textContent = response?.error || "題庫更新失敗，請稍後再試。";
+        saveSettingsButton.disabled = false;
+        return;
+      }
+      settingsDirty = false;
+      saveSettingsButton.textContent = "已套用";
+      setTimeout(() => {
+        saveSettingsButton.textContent = "套用";
+      }, 1200);
+    }
+  );
 }
 
 joinForm.addEventListener("submit", (event) => {
@@ -301,6 +355,18 @@ startButton.addEventListener("click", () => {
   }
   socket.emit("round:start");
 });
+
+categorySelect.addEventListener("change", () => {
+  settingsDirty = true;
+  saveSettingsButton.disabled = false;
+});
+
+customWordsInput.addEventListener("input", () => {
+  settingsDirty = true;
+  saveSettingsButton.disabled = false;
+});
+
+saveSettingsButton.addEventListener("click", saveSettings);
 
 guessForm.addEventListener("submit", (event) => {
   event.preventDefault();

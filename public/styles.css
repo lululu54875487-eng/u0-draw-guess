@@ -38,7 +38,9 @@ body {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 
@@ -119,21 +121,37 @@ h1 {
 }
 
 .join-panel input,
-.guess-form input {
+.guess-form input,
+.settings-box select,
+.settings-box textarea {
   width: 100%;
-  min-height: 48px;
   border: 1px solid var(--line);
   border-radius: 14px;
   outline: 0;
   background: var(--white);
   color: var(--ink);
+}
+
+.join-panel input,
+.guess-form input,
+.settings-box select {
+  min-height: 48px;
   padding: 0 14px;
 }
 
 .join-panel input:focus,
-.guess-form input:focus {
+.guess-form input:focus,
+.settings-box select:focus,
+.settings-box textarea:focus {
   border-color: var(--blue-500);
   box-shadow: 0 0 0 4px rgba(93, 157, 175, 0.16);
+}
+
+.settings-box textarea {
+  min-height: 116px;
+  padding: 12px 14px;
+  resize: vertical;
+  line-height: 1.45;
 }
 
 .join-actions {
@@ -376,11 +394,12 @@ canvas {
 .side-panel {
   min-width: 0;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: 14px;
 }
 
 .players-box,
+.settings-box,
 .chat-box {
   min-width: 0;
   border-radius: 20px;
@@ -401,6 +420,30 @@ canvas {
 
 .small-button {
   padding: 0 16px;
+}
+
+.settings-box label {
+  display: block;
+  margin: 12px 0 7px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.helper-text {
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
 }
 
 .players-list {
