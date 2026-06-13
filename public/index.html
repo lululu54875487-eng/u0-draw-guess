@@ -1,146 +1,155 @@
 <!doctype html>
-<html lang="zh-TW">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>小u0畫畫猜猜</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-<main>
-  <section id="joinView" class="join-view">
-    <form id="joinForm" class="join-panel">
-      <label for="nameInput">暱稱</label>
-      <input id="nameInput" name="name" autocomplete="nickname" maxlength="14" placeholder="輸入你的可愛暱稱" />
-
-      <label for="roomInput">房間代碼</label>
-      <input id="roomInput" name="room" autocomplete="off" maxlength="8" placeholder="有連結會自動帶入" />
-      <p class="field-hint">第一次開局不用填這格，按「開新房間」就好。</p>
-
-      <div class="join-actions">
-        <button class="primary-button" type="submit">加入房間</button>
-        <button id="createRoomButton" class="secondary-button" type="button">開新房間</button>
-      </div>
-
-      <p id="joinError" class="error-text" role="alert"></p>
-    </form>
-  </section>
-
-  <section id="gameView" class="game-view" hidden>
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">🎨小u0畫畫猜猜 💩by 璐璐璐</p>
-        <h2 id="roundTitle">等待開始</h2>
-      </div>
-      <div class="room-pill">
-        <span id="roomCodeLabel">----</span>
-        <button id="copyLinkButton" type="button" title="複製邀請連結">邀請</button>
-      </div>
-    </header>
-
-    <section class="status-strip" aria-live="polite">
-      <div>
-        <span>提示</span>
-        <strong id="hintLabel">等房主開始</strong>
-      </div>
-      <div>
-        <span>倒數</span>
-        <strong id="timerLabel">--</strong>
-      </div>
-      <div>
-        <span>身份</span>
-        <strong id="roleLabel">玩家</strong>
-      </div>
-    </section>
-
-    <section class="play-layout">
-      <div class="canvas-panel">
-        <div class="toolbar">
-          <div class="swatches" aria-label="畫筆顏色">
-            <button class="swatch is-active" type="button" data-color="#4b8fa0" style="--swatch:#4b8fa0" title="水藍"></button>
-            <button class="swatch" type="button" data-color="#78b7c8" style="--swatch:#78b7c8" title="淺藍"></button>
-            <button class="swatch" type="button" data-color="#5f7f9f" style="--swatch:#5f7f9f" title="灰藍"></button>
-            <button class="swatch" type="button" data-color="#e59aa2" style="--swatch:#e59aa2" title="粉紅"></button>
-            <button class="swatch" type="button" data-color="#d77f8f" style="--swatch:#d77f8f" title="莓果"></button>
-            <button class="swatch" type="button" data-color="#e4bf7a" style="--swatch:#e4bf7a" title="奶茶"></button>
-            <button class="swatch" type="button" data-color="#f2d36b" style="--swatch:#f2d36b" title="布丁黃"></button>
-            <button class="swatch" type="button" data-color="#86b889" style="--swatch:#86b889" title="抹茶綠"></button>
-            <button class="swatch" type="button" data-color="#9c89c8" style="--swatch:#9c89c8" title="薰衣草"></button>
-            <button class="swatch" type="button" data-color="#53606b" style="--swatch:#53606b" title="墨灰"></button>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#b8dce5" />
+    <title>🎨小u0畫畫猜猜 💩by 璐璐璐</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/socket.io/socket.io.js" defer></script>
+    <script src="/client.js" defer></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section id="joinView" class="join-view" aria-labelledby="gameTitle">
+        <div class="brand">
+          <span class="brand-mark">u0</span>
+          <div>
+            <h1 id="gameTitle" class="main-title">🎨小u0畫畫猜猜 <span>💩by 璐璐璐</span></h1>
+            <p>Yuna 團購群專用</p>
           </div>
-          <div class="brush-tools">
-            <label class="size-control" for="brushSize">
-              <span>筆觸</span>
-              <input id="brushSize" type="range" min="2" max="30" value="7" />
-              <strong id="brushSizeValue">7</strong>
-            </label>
-            <div class="size-presets" aria-label="筆觸粗細快捷">
-              <button type="button" data-size="4">細</button>
-              <button type="button" data-size="10">中</button>
-              <button type="button" data-size="20">粗</button>
+        </div>
+
+        <form id="joinForm" class="join-panel">
+          <label for="nameInput">暱稱</label>
+          <input id="nameInput" name="name" autocomplete="nickname" maxlength="14" placeholder="輸入你的可愛暱稱" />
+
+          <label for="roomInput">房間代碼</label>
+          <input id="roomInput" name="room" autocomplete="off" maxlength="8" placeholder="有連結會自動帶入" />
+          <p class="field-hint">第一次開局不用填這格，按「開新房間」就好。</p>
+
+          <div class="join-actions">
+            <button class="primary-button" type="submit">加入房間</button>
+            <button id="createRoomButton" class="secondary-button" type="button">開新房間</button>
+          </div>
+
+          <p id="joinError" class="error-text" role="alert"></p>
+        </form>
+      </section>
+
+      <section id="gameView" class="game-view" hidden>
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">🎨小u0畫畫猜猜 💩by 璐璐璐</p>
+            <h2 id="roundTitle">等待開始</h2>
+          </div>
+          <div class="room-pill">
+            <span id="roomCodeLabel">----</span>
+            <button id="copyLinkButton" type="button" title="複製邀請連結">邀請</button>
+          </div>
+        </header>
+
+        <section class="status-strip" aria-live="polite">
+          <div>
+            <span>提示</span>
+            <strong id="hintLabel">等房主開始</strong>
+          </div>
+          <div>
+            <span>倒數</span>
+            <strong id="timerLabel">--</strong>
+          </div>
+          <div>
+            <span>身份</span>
+            <strong id="roleLabel">玩家</strong>
+          </div>
+        </section>
+
+        <section class="play-layout">
+          <div class="canvas-panel">
+            <div class="toolbar">
+              <div class="swatches" aria-label="畫筆顏色">
+                <button class="swatch is-active" type="button" data-color="#4b8fa0" style="--swatch:#4b8fa0" title="水藍"></button>
+                <button class="swatch" type="button" data-color="#78b7c8" style="--swatch:#78b7c8" title="淺藍"></button>
+                <button class="swatch" type="button" data-color="#5f7f9f" style="--swatch:#5f7f9f" title="灰藍"></button>
+                <button class="swatch" type="button" data-color="#e59aa2" style="--swatch:#e59aa2" title="粉紅"></button>
+                <button class="swatch" type="button" data-color="#d77f8f" style="--swatch:#d77f8f" title="莓果"></button>
+                <button class="swatch" type="button" data-color="#e4bf7a" style="--swatch:#e4bf7a" title="奶茶"></button>
+                <button class="swatch" type="button" data-color="#f2d36b" style="--swatch:#f2d36b" title="布丁黃"></button>
+                <button class="swatch" type="button" data-color="#86b889" style="--swatch:#86b889" title="抹茶綠"></button>
+                <button class="swatch" type="button" data-color="#9c89c8" style="--swatch:#9c89c8" title="薰衣草"></button>
+                <button class="swatch" type="button" data-color="#53606b" style="--swatch:#53606b" title="墨灰"></button>
+              </div>
+              <div class="brush-tools">
+                <label class="size-control" for="brushSize">
+                  <span>筆觸</span>
+                  <input id="brushSize" type="range" min="2" max="30" value="7" />
+                  <strong id="brushSizeValue">7</strong>
+                </label>
+                <div class="size-presets" aria-label="筆觸粗細快捷">
+                  <button type="button" data-size="4">細</button>
+                  <button type="button" data-size="10">中</button>
+                  <button type="button" data-size="20">粗</button>
+                </div>
+              </div>
+              <button id="clearButton" class="icon-button" type="button" title="清空畫布">清空</button>
+            </div>
+
+            <div class="canvas-wrap">
+              <canvas id="drawCanvas" width="900" height="620"></canvas>
+              <div class="watermark">❗️限廢物公司使用｜禁止外流｜by 璐璐璐✨</div>
+              <div id="canvasBlocker" class="canvas-blocker">等待畫畫的人出題中</div>
             </div>
           </div>
-          <button id="clearButton" class="icon-button" type="button" title="清空畫布">清空</button>
-        </div>
 
-        <div class="canvas-wrap">
-          <canvas id="drawCanvas" width="900" height="620"></canvas>
-          <div class="watermark">❗️限廢物公司使用｜禁止外流｜by 璐璐璐✨</div>
-          <div id="canvasBlocker" class="canvas-blocker">等待畫畫的人出題中</div>
-        </div>
-      </div>
+          <aside class="side-panel">
+            <div class="players-box">
+              <div class="panel-title">
+                <h3>玩家</h3>
+                <button id="startButton" class="small-button" type="button">開始</button>
+              </div>
+              <ul id="playersList" class="players-list"></ul>
+            </div>
 
-      <aside class="side-panel">
-        <div class="players-box">
-          <div class="panel-title">
-            <h3>玩家</h3>
-            <button id="startButton" class="small-button" type="button">開始</button>
-          </div>
-          <ul id="playersList" class="players-list"></ul>
-        </div>
+            <div class="chat-box">
+              <h3>猜答案</h3>
+              <div id="messagesList" class="messages-list" aria-live="polite"></div>
+              <div class="emoji-row" aria-label="常用 emoji">
+                <button type="button" data-emoji="😂">😂</button>
+                <button type="button" data-emoji="🤣">🤣</button>
+                <button type="button" data-emoji="😍">😍</button>
+                <button type="button" data-emoji="🥹">🥹</button>
+                <button type="button" data-emoji="👍">👍</button>
+                <button type="button" data-emoji="👏">👏</button>
+                <button type="button" data-emoji="🔥">🔥</button>
+                <button type="button" data-emoji="✨">✨</button>
+              </div>
+              <form id="guessForm" class="guess-form">
+                <input id="guessInput" autocomplete="off" maxlength="60" placeholder="輸入答案或聊天" />
+                <button type="submit">送出</button>
+              </form>
+            </div>
 
-        <div class="settings-box">
-          <div class="panel-title">
-            <h3>題庫</h3>
-            <button id="saveSettingsButton" class="small-button" type="button">套用</button>
-          </div>
-          <label for="categorySelect">分類</label>
-          <select id="categorySelect">
-            <option value="mixed">全部混合</option>
-            <option value="food">食物飲料</option>
-            <option value="daily">生活小物</option>
-            <option value="cute">可愛動物</option>
-            <option value="party">聚會搞笑</option>
-            <option value="custom">只玩自訂題目</option>
-          </select>
-          <label for="customWordsInput">自訂題目</label>
-          <textarea id="customWordsInput" rows="5" maxlength="900" placeholder="一行一題，例如：&#10;團購主&#10;今天吃什麼&#10;Yuna"></textarea>
-          <p id="settingsHint" class="helper-text">房主可修改；自訂題目會加入所選分類，選「只玩自訂題目」則只抽這裡。</p>
-        </div>
-
-        <div class="chat-box">
-          <h3>猜答案</h3>
-          <div id="messagesList" class="messages-list" aria-live="polite"></div>
-          <div class="emoji-row" aria-label="常用 emoji">
-            <button type="button" data-emoji="😂">😂</button>
-            <button type="button" data-emoji="🤣">🤣</button>
-            <button type="button" data-emoji="😍">😍</button>
-            <button type="button" data-emoji="🥹">🥹</button>
-            <button type="button" data-emoji="👍">👍</button>
-            <button type="button" data-emoji="👏">👏</button>
-            <button type="button" data-emoji="🔥">🔥</button>
-            <button type="button" data-emoji="✨">✨</button>
-          </div>
-          <form id="guessForm" class="guess-form">
-            <input id="guessInput" autocomplete="off" maxlength="60" placeholder="輸入答案或聊天" />
-            <button type="submit">送出</button>
-          </form>
-        </div>
-      </aside>
-    </section>
-  </section>
-</main>
-
-<script src="client.js"></script>
-</body>
+            <div class="settings-box">
+              <div class="panel-title">
+                <h3>題庫</h3>
+                <button id="saveSettingsButton" class="small-button" type="button">套用</button>
+              </div>
+              <label for="categorySelect">分類</label>
+              <select id="categorySelect">
+                <option value="mixed">全部混合</option>
+                <option value="food">食物飲料</option>
+                <option value="daily">生活小物</option>
+                <option value="cute">可愛動物</option>
+                <option value="party">聚會搞笑</option>
+                <option value="custom">只玩自訂題目</option>
+              </select>
+              <label for="customWordsInput">自訂題目</label>
+              <textarea id="customWordsInput" rows="5" maxlength="900" placeholder="一行一題，例如：&#10;團購主&#10;今天吃什麼&#10;Yuna"></textarea>
+              <p id="settingsHint" class="helper-text">房主可修改；自訂題目會加入所選分類，選「只玩自訂題目」則只抽這裡。</p>
+            </div>
+          </aside>
+        </section>
+      </section>
+    </main>
+  </body>
 </html>
